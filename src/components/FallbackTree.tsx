@@ -30,13 +30,6 @@ const NodeLabel = styled(Box)({
   },
 });
 
-const NodeContent = styled(Box)({
-  display: 'flex',
-  alignItems: 'center',
-  gap: '8px',
-  width: '100%',
-});
-
 const NodeText = styled(Typography)({
   flex: 1,
   whiteSpace: 'nowrap',

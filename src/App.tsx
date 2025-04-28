@@ -4,10 +4,10 @@ import { oneDark } from '@codemirror/theme-one-dark';
 import { styled } from '@mui/material/styles';
 import { 
   Box, Paper, Typography, Button, Switch, FormControlLabel, 
-  Tooltip, IconButton
+  Tooltip
 } from '@mui/material';
 import {
-  FileDownload, Code as CodeIcon, TextSnippet, 
+  Code as CodeIcon, TextSnippet, 
   Refresh, ViewList, BugReport
 } from '@mui/icons-material';
 import DirectoryTree from './components/DirectoryTree';

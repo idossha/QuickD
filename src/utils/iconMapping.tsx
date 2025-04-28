@@ -7,9 +7,9 @@ import {
   // Special folders
   Storage, Api, Settings, Build, Image, Public, Dataset,
   // Development
-  CloudQueue, Devices, Architecture, Language, Extension, 
+  CloudQueue, Architecture, Extension, 
   // Testing
-  BugReport, VpnKey, QueryStats, Search, 
+  BugReport, VpnKey, QueryStats, 
   // Media
   AudioFile, VideoFile, TextSnippet, PictureAsPdf, Article,
   // Config

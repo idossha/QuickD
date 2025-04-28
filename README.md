@@ -1,54 +1,100 @@
-# React + TypeScript + Vite
+# QuickDir
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A visual directory structure generator and visualizer that helps you plan and document your project's folder structure.
 
-Currently, two official plugins are available:
+![QuickDir Screenshot](public/screenshot.png)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Features
 
-## Expanding the ESLint configuration
+- Easy-to-use directory structure editor with syntax highlighting
+- Visual directory tree representation with custom icons
+- Export your structure as JSON or TXT
+- Debug mode for visualization of parsed structures
+- Support for both modern tree view and simple list view
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Technologies
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+- React 19
+- TypeScript 5
+- Material UI 7
+- CodeMirror for code editing
+- Vite for development and building
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 18+ and npm
+
+### Installation
+
+1. Clone the repository:
+
+```bash
+git clone https://github.com/yourusername/QuickDir.git
+cd QuickDir
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+2. Install dependencies:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
+```bash
+npm install
 ```
+
+### Development
+
+Start the development server:
+
+```bash
+npm run dev
+```
+
+This will start the application at `http://localhost:5173`.
+
+### Building for Production
+
+Build the application:
+
+```bash
+npm run build
+```
+
+Preview the production build:
+
+```bash
+npm run preview
+```
+
+## Usage
+
+1. Define your directory structure in the editor using the syntax:
+   - `variable = name` to define a node with a specific name
+   - `parent = child(child1 child2)` to define parent-child relationships
+
+2. Example structure:
+```
+level0 = MyProject
+level0 = child(src docs tests)
+
+src = child(components utils types)
+components = child(Button Header)
+utils = child(helpers constants)
+```
+
+3. Export your structure as JSON or TXT using the buttons at the bottom of the tree view.
+
+## Project Structure
+
+```
+QuickDir/
+├── public/          # Static assets
+├── src/
+│   ├── components/  # React components
+│   ├── types/       # TypeScript type definitions
+│   └── utils/       # Utility functions and helpers
+└── ...              # Configuration files
+```
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
