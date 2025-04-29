@@ -3,13 +3,13 @@ import { LanguageSupport } from '@codemirror/language';
 
 interface DirectoryState {
   state: number;
-  variable: string;
+  depth: number;
 }
 
 // Define the custom directory structure language
 export const directoryLanguage = StreamLanguage.define<DirectoryState>({
   // Start the tokenizer in state 0
-  startState: () => ({ state: 0, variable: "" }),
+  startState: () => ({ state: 0, depth: 0 }),
 
   // This is the tokenizer function
   token(stream, state) {
@@ -22,44 +22,32 @@ export const directoryLanguage = StreamLanguage.define<DirectoryState>({
       return "comment";
     }
 
-    // Variable declaration
+    // Node name
     if (state.state === 0) {
-      const varMatch = stream.match(/[a-zA-Z0-9_]+/);
-      if (varMatch && typeof varMatch !== 'boolean') {
-        state.variable = varMatch[0];
-        state.state = 1;
-        return "variable";
-      }
+      stream.eatWhile(/[a-zA-Z0-9_-]/);
+      state.state = 1;
+      return "variable";
     }
 
-    // Equal sign
-    if (state.state === 1 && stream.eat("=")) {
+    // Opening parenthesis
+    if (state.state === 1 && stream.eat("(")) {
       state.state = 2;
-      return "operator";
+      state.depth++;
+      return "bracket";
     }
 
-    // Handle values (after the =)
+    // Child names
     if (state.state === 2) {
-      // Check for child() function
-      if (stream.match("child(")) {
-        state.state = 3;
-        return "keyword";
-      } else {
-        // Regular value (project name)
-        stream.eatWhile(/[a-zA-Z0-9_-]/);
-        state.state = 0; // Reset for next line
-        return "string";
-      }
-    }
-
-    // Inside child() function, handling arguments
-    if (state.state === 3) {
       if (stream.eat(")")) {
-        state.state = 0; // Reset for next line
-        return "keyword";
+        state.state = 0;
+        state.depth--;
+        return "bracket";
       }
       
-      // Child names inside the function
+      if (stream.eat(",")) {
+        return "operator";
+      }
+
       stream.eatWhile(/[a-zA-Z0-9_-]/);
       return "atom";
     }

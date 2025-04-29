@@ -1,96 +1,83 @@
-import { DirectoryNode, ParsedLine, VariableMap } from '../types/types';
+import { DirectoryNode } from '../types/types';
 
-export function parseLine(line: string): ParsedLine | null {
-  const trimmedLine = line.trim();
-  if (!trimmedLine || trimmedLine.startsWith('//')) return null;
+interface ParsedNode {
+  name: string;
+  children: string[];
+}
 
-  const parts = trimmedLine.split('=').map(part => part.trim());
-  if (parts.length !== 2) return null;
+function parseNodeLine(line: string): ParsedNode | null {
+  // Skip comments and empty lines
+  if (line.trim().startsWith('//') || !line.trim()) {
+    return null;
+  }
 
-  const operation = parts[1].startsWith('child(') ? 'child' : 'name';
-  const value = operation === 'child' 
-    ? parts[1].slice(6, -1).trim() 
-    : parts[1];
+  // Match pattern: name(child1, child2, ...)
+  const match = line.match(/^([a-zA-Z0-9_-]+)(?:\((.*)\))?$/);
+  if (!match) return null;
 
-  return {
-    variable: parts[0],
-    operation,
-    value
-  };
+  const [, name, childrenStr] = match;
+  const children = childrenStr 
+    ? childrenStr.split(',').map(s => s.trim()).filter(Boolean)
+    : [];
+
+  return { name, children };
 }
 
 export function parseDirectoryStructure(text: string): DirectoryNode | null {
-  if (!text.trim()) return null;
+  const lines = text.split('\n')
+    .map(line => line.trim())
+    .filter(Boolean)
+    .filter(line => !line.startsWith('//'));
 
-  console.log("Parsing text:", text);
-  const lines = text.split('\n');
-  const variables: VariableMap = {};
-  let rootNode: DirectoryNode | null = null;
+  if (lines.length === 0) return null;
 
-  // First pass: Create all nodes and handle name assignments
-  lines.forEach((line, index) => {
-    const parsed = parseLine(line);
-    if (!parsed) return;
-
-    console.log(`Line ${index + 1}: Parsed as ${parsed.operation}`, parsed);
-
-    if (parsed.operation === 'name') {
-      if (!variables[parsed.variable]) {
-        variables[parsed.variable] = {
-          name: parsed.value,
-          children: [],
-          level: parsed.variable === 'level0' ? 0 : -1
-        };
-      } else {
-        variables[parsed.variable].name = parsed.value;
-      }
+  // First, parse all lines into node definitions
+  const nodeDefinitions = new Map<string, string[]>();
+  
+  for (const line of lines) {
+    const parsed = parseNodeLine(line);
+    if (parsed) {
+      nodeDefinitions.set(parsed.name, parsed.children);
     }
-  });
-
-  // Second pass: Build relationships
-  lines.forEach((line, index) => {
-    const parsed = parseLine(line);
-    if (!parsed || parsed.operation !== 'child') return;
-
-    console.log(`Line ${index + 1}: Processing child relationship for ${parsed.variable}`);
-    
-    const parent = variables[parsed.variable];
-    if (!parent) {
-      console.log(`Warning: Parent variable "${parsed.variable}" not found`);
-      return;
-    }
-
-    const childNames = parsed.value.split(/[,\s]+/).filter(Boolean);
-    console.log(`Child names for ${parsed.variable}:`, childNames);
-    
-    childNames.forEach(childName => {
-      if (!variables[childName]) {
-        variables[childName] = {
-          name: childName,
-          children: [],
-          level: parent.level + 1
-        };
-      }
-      const childNode = variables[childName];
-      childNode.level = parent.level + 1;
-      
-      // Avoid duplicate children
-      if (!parent.children.some(child => child.name === childNode.name)) {
-        parent.children.push(childNode);
-      }
-    });
-  });
-
-  // Find root node (level0)
-  rootNode = variables['level0'] || null;
-
-  // If we have a root node but it doesn't have a name, use its variable name
-  if (rootNode && !rootNode.name) {
-    rootNode.name = 'level0';
   }
 
-  console.log("Parsed variables:", Object.keys(variables));
-  console.log("Root node:", rootNode);
+  // Build the tree starting from root
+  const buildNode = (name: string, level: number, visited = new Set<string>()): DirectoryNode => {
+    if (visited.has(name)) {
+      console.error(`Circular reference detected for node: ${name}`);
+      return { name, children: [], level };
+    }
 
-  return rootNode;
+    visited.add(name);
+    const children = (nodeDefinitions.get(name) || []).map(childName => 
+      buildNode(childName, level + 1, new Set(visited))
+    );
+
+    return { name, children, level };
+  };
+
+  // The first node is always the root
+  const firstNode = parseNodeLine(lines[0]);
+  if (!firstNode) {
+    return null;
+  }
+
+  return buildNode(firstNode.name, 0);
+}
+
+export function treeToCode(tree: DirectoryNode): string {
+  const lines: string[] = [];
+
+  function processNode(node: DirectoryNode) {
+    if (node.children.length === 0) {
+      lines.push(`${node.name}`);
+    } else {
+      const childrenStr = node.children.map(child => child.name).join(', ');
+      lines.push(`${node.name}(${childrenStr})`);
+      node.children.forEach(processNode);
+    }
+  }
+
+  processNode(tree);
+  return lines.join('\n');
 } 

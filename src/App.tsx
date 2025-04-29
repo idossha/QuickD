@@ -17,6 +17,9 @@ import TreeDebugger from './components/TreeDebugger';
 import { parseDirectoryStructure } from './utils/parser';
 import { directoryLanguageSupport } from './utils/directoryLanguage';
 import html2canvas from 'html2canvas';
+import InteractiveTree from './components/InteractiveTree';
+import { treeToCode } from './utils/treeManipulation';
+import { DirectoryNode } from './types/types';
 
 const Container = styled(Box)({
   display: 'flex',
@@ -80,24 +83,19 @@ const ExportButtonsContainer = styled(Box)({
 const simpleExample = `// Simple Example
 // Try this basic structure first
 
-level0 = MyProject
-level0 = child(src docs)
-
-src = child(components)
-components = child(Button Header)`;
+MyProject(src, docs)
+src(components)
+components(Button, Header)`;
 
 const initialCode = `// QuickDir - Directory Structure Visualizer
 // Define your project structure below:
 
-level0 = my_project
-level0 = child(src docs tests)
-
-src = child(components utils types)
-components = child(ui core)
-utils = child(helpers constants)
-
-docs = child(api guides examples)
-tests = child(unit integration e2e)`;
+my_project(src, docs, tests)
+src(components, utils, types)
+components(ui, core)
+utils(helpers, constants)
+docs(api, guides, examples)
+tests(unit, integration, e2e)`;
 
 function App() {
   const [code, setCode] = useState(initialCode);
@@ -106,24 +104,40 @@ function App() {
   const [showDebug, setShowDebug] = useState(false);
   const [useFallback, setUseFallback] = useState(true);
   const treeRef = useRef<HTMLDivElement>(null);
+  const [isUpdatingFromTree, setIsUpdatingFromTree] = useState(false);
 
+  // Update tree when code changes
   useEffect(() => {
-    try {
-      const newTree = parseDirectoryStructure(code);
-      console.log("Parsed tree:", newTree);
-      
-      if (!newTree) {
-        setDebug("Failed to parse tree structure");
-      } else {
-        setDebug(`Tree parsed successfully: Root is '${newTree.name}' with ${newTree.children.length} children`);
+    if (!isUpdatingFromTree) {
+      try {
+        const newTree = parseDirectoryStructure(code);
+        if (!newTree) {
+          setDebug("Failed to parse tree structure");
+        } else {
+          setDebug(`Tree parsed successfully: Root is '${newTree.name}' with ${newTree.children.length} children`);
+          setTree(newTree);
+        }
+      } catch (error) {
+        console.error("Error parsing tree:", error);
+        setDebug(`Error: ${error instanceof Error ? error.message : String(error)}`);
       }
-      
-      setTree(newTree);
+    }
+    setIsUpdatingFromTree(false);
+  }, [code, isUpdatingFromTree]);
+
+  const handleTreeUpdate = (newTree: DirectoryNode) => {
+    setIsUpdatingFromTree(true);
+    setTree(newTree);
+    
+    try {
+      const newCode = treeToCode(newTree);
+      setCode(newCode);
+      setDebug("Tree structure updated successfully");
     } catch (error) {
-      console.error("Error parsing tree:", error);
+      console.error("Error converting tree to code:", error);
       setDebug(`Error: ${error instanceof Error ? error.message : String(error)}`);
     }
-  }, [code]);
+  };
 
   const exportAsJSON = () => {
     if (!tree) return;
@@ -253,10 +267,11 @@ function App() {
           </Box>
         </ControlsContainer>
         <TreeViewWrapper ref={treeRef}>
-          {useFallback 
-            ? <FallbackTree data={tree} />
-            : <DirectoryTree data={tree} />
-          }
+          {useFallback ? (
+            <InteractiveTree data={tree} onUpdate={handleTreeUpdate} />
+          ) : (
+            <DirectoryTree data={tree} />
+          )}
           {showDebug && tree && <TreeDebugger data={tree} />}
         </TreeViewWrapper>
         {showDebug && <DebugInfo>{debug}</DebugInfo>}
