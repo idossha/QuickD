@@ -12,7 +12,6 @@ import {
   Image as ImageIcon
 } from '@mui/icons-material';
 import DirectoryTree from './components/DirectoryTree';
-import FallbackTree from './components/FallbackTree';
 import TreeDebugger from './components/TreeDebugger';
 import { parseDirectoryStructure } from './utils/parser';
 import { directoryLanguageSupport } from './utils/directoryLanguage';
@@ -102,7 +101,7 @@ function App() {
   const [tree, setTree] = useState(parseDirectoryStructure(initialCode));
   const [debug, setDebug] = useState<string>("");
   const [showDebug, setShowDebug] = useState(false);
-  const [useFallback, setUseFallback] = useState(true);
+  const [useSimpleView, setUseSimpleView] = useState(true);
   const treeRef = useRef<HTMLDivElement>(null);
   const [isUpdatingFromTree, setIsUpdatingFromTree] = useState(false);
 
@@ -232,8 +231,8 @@ function App() {
               <FormControlLabel
                 control={
                   <Switch 
-                    checked={useFallback}
-                    onChange={(e) => setUseFallback(e.target.checked)}
+                    checked={useSimpleView}
+                    onChange={(e) => setUseSimpleView(e.target.checked)}
                     size="small"
                   />
                 }
@@ -267,10 +266,10 @@ function App() {
           </Box>
         </ControlsContainer>
         <TreeViewWrapper ref={treeRef}>
-          {useFallback ? (
-            <InteractiveTree data={tree} onUpdate={handleTreeUpdate} />
-          ) : (
+          {useSimpleView ? (
             <DirectoryTree data={tree} />
+          ) : (
+            <InteractiveTree data={tree} onUpdate={handleTreeUpdate} />
           )}
           {showDebug && tree && <TreeDebugger data={tree} />}
         </TreeViewWrapper>
