@@ -6,11 +6,12 @@ A visual directory structure generator and visualizer that helps you plan and do
 
 ## Features
 
-- Easy-to-use directory structure editor with syntax highlighting
+- Interactive directory tree editor with drag-and-drop support
+- Intuitive parentheses-based syntax for defining structures
 - Visual directory tree representation with custom icons
-- Export your structure as JSON or TXT
+- Export your structure as JSON, TXT, or full-size PNG
 - Debug mode for visualization of parsed structures
-- Support for both modern tree view and simple list view
+- Real-time bidirectional updates between code and tree view
 
 ## Technologies
 
@@ -120,21 +121,31 @@ The deployment process automatically:
 
 ## Usage
 
-1. Define your directory structure in the editor using the syntax:
-   - `variable = name` to define a node with a specific name
-   - `parent = child(child1 child2)` to define parent-child relationships
+1. Define your directory structure in the editor using the simple parentheses syntax:
+   ```
+   ParentNode(child1, child2, child3)
+   child1(grandchild1, grandchild2)
+   ```
 
 2. Example structure:
 ```
-level0 = MyProject
-level0 = child(src docs tests)
-
-src = child(components utils types)
-components = child(Button Header)
-utils = child(helpers constants)
+MyProject(src, docs, tests)
+src(components, utils, types)
+components(Button, Header)
+utils(helpers, constants)
 ```
 
-3. Export your structure as JSON or TXT using the buttons at the bottom of the tree view.
+3. Interactive Features:
+   - Double-click any node to rename it
+   - Use the toolbar buttons to add files or folders
+   - Delete nodes with the delete button
+   - Export your structure as JSON, TXT, or PNG
+   - Enable debug mode to see the internal tree structure
+
+4. Export Options:
+   - JSON: Full tree structure with all metadata
+   - TXT: Simple text representation of the hierarchy
+   - PNG: High-quality image of the entire tree structure (supports large trees)
 
 ## Project Structure
 
@@ -143,8 +154,13 @@ QuickDir/
 ├── public/          # Static assets
 ├── src/
 │   ├── components/  # React components
+│   │   ├── InteractiveTree.tsx  # Main tree editor
+│   │   └── TreeDebugger.tsx    # Debug visualization
 │   ├── types/       # TypeScript type definitions
-│   └── utils/       # Utility functions and helpers
+│   └── utils/       # Utility functions
+│       ├── parser.ts           # Directory structure parser
+│       ├── treeManipulation.ts # Tree operations
+│       └── directoryLanguage.ts# Syntax highlighting
 └── ...              # Configuration files
 ```
 
