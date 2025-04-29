@@ -43,9 +43,11 @@ npm install
 
 ### Development
 
-Start the development server:
+Start the development server using either of these commands:
 
 ```bash
+npm start
+# or
 npm run dev
 ```
 
@@ -64,6 +66,57 @@ Preview the production build:
 ```bash
 npm run preview
 ```
+
+## Deployment
+
+This project is set up for easy deployment to GitHub Pages.
+
+### Automated Deployment
+
+This repository is configured with GitHub Actions to automatically deploy to GitHub Pages whenever changes are pushed to the main branch. The live site will be updated automatically.
+
+The GitHub Action workflow:
+1. Checks out the code
+2. Sets up Node.js
+3. Installs dependencies
+4. Builds the project
+5. Deploys to GitHub Pages
+
+You can view the workflow file at `.github/workflows/deploy.yml`.
+
+### Manual Deployment
+
+If you need to deploy manually:
+
+1. Make sure your changes are committed to Git
+2. Run the deployment command:
+
+```bash
+npm run deploy
+```
+
+3. The site will be deployed to: `https://idossha.github.io/QuickD/`
+
+### Deployment Workflow
+
+When you make changes to the app, follow these steps to update the live site:
+
+1. Make and test your changes locally using `npm run dev`
+2. Commit your changes to git:
+   ```bash
+   git add .
+   git commit -m "Description of changes"
+   git push
+   ```
+3. The site will be automatically deployed via GitHub Actions, or you can deploy manually:
+   ```bash
+   npm run deploy
+   ```
+
+The deployment process automatically:
+- Builds your project with the correct base path
+- Pushes the built files to the `gh-pages` branch
+- Updates your live site
 
 ## Usage
 
