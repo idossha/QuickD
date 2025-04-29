@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import CodeMirror from '@uiw/react-codemirror';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { styled } from '@mui/material/styles';
@@ -8,13 +8,15 @@ import {
 } from '@mui/material';
 import {
   Code as CodeIcon, TextSnippet, 
-  Refresh, ViewList, BugReport
+  Refresh, ViewList, BugReport,
+  Image as ImageIcon
 } from '@mui/icons-material';
 import DirectoryTree from './components/DirectoryTree';
 import FallbackTree from './components/FallbackTree';
 import TreeDebugger from './components/TreeDebugger';
 import { parseDirectoryStructure } from './utils/parser';
 import { directoryLanguageSupport } from './utils/directoryLanguage';
+import html2canvas from 'html2canvas';
 
 const Container = styled(Box)({
   display: 'flex',
@@ -74,6 +76,13 @@ const ControlsContainer = styled(Box)({
   gap: '8px',
 });
 
+const ExportButtonsContainer = styled(Box)({
+  display: 'grid',
+  gridTemplateColumns: 'repeat(3, 1fr)',
+  gap: '10px',
+  marginTop: '10px',
+});
+
 const simpleExample = `// Simple Example
 // Try this basic structure first
 
@@ -101,7 +110,8 @@ function App() {
   const [tree, setTree] = useState(parseDirectoryStructure(initialCode));
   const [debug, setDebug] = useState<string>("");
   const [showDebug, setShowDebug] = useState(false);
-  const [useFallback, setUseFallback] = useState(false);
+  const [useFallback, setUseFallback] = useState(true);
+  const treeRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     try {
@@ -154,6 +164,27 @@ function App() {
     document.body.appendChild(downloadAnchorNode);
     downloadAnchorNode.click();
     downloadAnchorNode.remove();
+  };
+
+  const exportAsPNG = async () => {
+    if (!treeRef.current || !tree) return;
+    
+    try {
+      const canvas = await html2canvas(treeRef.current, {
+        backgroundColor: '#ffffff',
+        scale: 2, // Higher quality
+      });
+      
+      const dataUrl = canvas.toDataURL('image/png');
+      const downloadLink = document.createElement('a');
+      downloadLink.href = dataUrl;
+      downloadLink.download = 'directory_structure.png';
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+    } catch (error) {
+      console.error('Error exporting as PNG:', error);
+    }
   };
 
   const setSimpleExample = () => {
@@ -227,7 +258,7 @@ function App() {
             </Tooltip>
           </Box>
         </ControlsContainer>
-        <TreeViewWrapper>
+        <TreeViewWrapper ref={treeRef}>
           {useFallback 
             ? <FallbackTree data={tree} />
             : <DirectoryTree data={tree} />
@@ -235,7 +266,7 @@ function App() {
           {showDebug && tree && <TreeDebugger data={tree} />}
         </TreeViewWrapper>
         {showDebug && <DebugInfo>{debug}</DebugInfo>}
-        <ButtonContainer>
+        <ExportButtonsContainer>
           <Tooltip title="Export as JSON file">
             <Button 
               variant="contained" 
@@ -258,7 +289,18 @@ function App() {
               Export TXT
             </Button>
           </Tooltip>
-        </ButtonContainer>
+          <Tooltip title="Export as PNG image">
+            <Button 
+              variant="contained" 
+              color="info" 
+              onClick={exportAsPNG}
+              startIcon={<ImageIcon />}
+              fullWidth
+            >
+              Export PNG
+            </Button>
+          </Tooltip>
+        </ExportButtonsContainer>
       </TreeContainer>
     </Container>
   );
