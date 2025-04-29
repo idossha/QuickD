@@ -8,10 +8,9 @@ import {
 } from '@mui/material';
 import {
   Code as CodeIcon, TextSnippet, 
-  Refresh, ViewList, BugReport,
+  Refresh, BugReport,
   Image as ImageIcon
 } from '@mui/icons-material';
-import DirectoryTree from './components/DirectoryTree';
 import TreeDebugger from './components/TreeDebugger';
 import { parseDirectoryStructure } from './utils/parser';
 import { directoryLanguageSupport } from './utils/directoryLanguage';
