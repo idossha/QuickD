@@ -101,7 +101,6 @@ function App() {
   const [tree, setTree] = useState(parseDirectoryStructure(initialCode));
   const [debug, setDebug] = useState<string>("");
   const [showDebug, setShowDebug] = useState(false);
-  const [useSimpleView, setUseSimpleView] = useState(true);
   const treeRef = useRef<HTMLDivElement>(null);
   const [isUpdatingFromTree, setIsUpdatingFromTree] = useState(false);
 
@@ -177,11 +176,34 @@ function App() {
     if (!treeRef.current || !tree) return;
     
     try {
-      const canvas = await html2canvas(treeRef.current, {
+      // Create a clone of the tree container to manipulate
+      const treeContainer = treeRef.current.cloneNode(true) as HTMLElement;
+      const wrapper = document.createElement('div');
+      wrapper.style.position = 'absolute';
+      wrapper.style.left = '-9999px';
+      wrapper.style.top = '-9999px';
+      wrapper.appendChild(treeContainer);
+      document.body.appendChild(wrapper);
+
+      // Reset scroll position and expand the container
+      treeContainer.style.height = 'auto';
+      treeContainer.style.width = 'fit-content';
+      treeContainer.style.overflow = 'visible';
+
+      // Render to canvas
+      const canvas = await html2canvas(treeContainer, {
         backgroundColor: '#ffffff',
         scale: 2, // Higher quality
+        windowWidth: treeContainer.scrollWidth,
+        windowHeight: treeContainer.scrollHeight,
+        width: treeContainer.scrollWidth,
+        height: treeContainer.scrollHeight
       });
       
+      // Clean up
+      document.body.removeChild(wrapper);
+      
+      // Download
       const dataUrl = canvas.toDataURL('image/png');
       const downloadLink = document.createElement('a');
       downloadLink.href = dataUrl;
@@ -191,6 +213,7 @@ function App() {
       document.body.removeChild(downloadLink);
     } catch (error) {
       console.error('Error exporting as PNG:', error);
+      setDebug(`Error exporting as PNG: ${error instanceof Error ? error.message : String(error)}`);
     }
   };
 
@@ -227,24 +250,6 @@ function App() {
         <ControlsContainer>
           <Typography variant="h6">Directory Tree</Typography>
           <Box display="flex" alignItems="center" gap={1}>
-            <Tooltip title="Switch between tree view styles">
-              <FormControlLabel
-                control={
-                  <Switch 
-                    checked={useSimpleView}
-                    onChange={(e) => setUseSimpleView(e.target.checked)}
-                    size="small"
-                  />
-                }
-                label={
-                  <Box display="flex" alignItems="center" gap={0.5}>
-                    <ViewList fontSize="small" />
-                    <Typography variant="caption">Simple View</Typography>
-                  </Box>
-                }
-                labelPlacement="start"
-              />
-            </Tooltip>
             <Tooltip title="Show debug information">
               <FormControlLabel
                 control={
@@ -266,11 +271,7 @@ function App() {
           </Box>
         </ControlsContainer>
         <TreeViewWrapper ref={treeRef}>
-          {useSimpleView ? (
-            <DirectoryTree data={tree} />
-          ) : (
-            <InteractiveTree data={tree} onUpdate={handleTreeUpdate} />
-          )}
+          <InteractiveTree data={tree} onUpdate={handleTreeUpdate} />
           {showDebug && tree && <TreeDebugger data={tree} />}
         </TreeViewWrapper>
         {showDebug && <DebugInfo>{debug}</DebugInfo>}
