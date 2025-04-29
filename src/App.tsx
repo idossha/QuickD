@@ -51,12 +51,6 @@ const TreeViewWrapper = styled(Box)({
   flexDirection: 'column',
 });
 
-const ButtonContainer = styled(Box)({
-  display: 'flex',
-  gap: '10px',
-  marginTop: '10px',
-});
-
 // For debugging
 const DebugInfo = styled(Box)({
   padding: '10px',
